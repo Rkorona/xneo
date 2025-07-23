@@ -1,0 +1,29 @@
+[package]
+name = "xneo"
+version = "0.2.0"
+edition = "2021"
+description = "A smarter cd command with memory and intelligence"
+license = "MIT"
+repository = "https://github.com/your-username/xneo"
+keywords = ["cli", "directory", "navigation", "cd", "terminal"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+anyhow = "1.0.86"
+dirs = "5.0"
+clap = { version = "4.5.4", features = ["derive"] }
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.117"
+chrono = { version = "0.4.38", features = ["serde"] }
+shellexpand = "3.1.0"
+home = "0.5.9"
+rusqlite = { version = "0.31", features = ["bundled", "chrono"] }
+regex = "1.10"
+fuzzy-matcher = "0.3"
+colored = "2.0"
+indicatif = "0.17"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
