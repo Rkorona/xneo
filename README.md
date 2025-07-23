@@ -1,21 +1,21 @@
-# xneo 🚀
+# xneo
 
 A smarter `cd` command with memory and intelligence.
 
 xneo learns from your directory navigation patterns and provides instant, intelligent directory jumping with a frecency algorithm (frequency + recency).
 
-## ✨ Features
+## Features
 
-- **🧠 Smart Navigation**: Learns your patterns and suggests the most relevant directories
-- **⚡ Instant Jumping**: Jump to any directory by partial name matching
-- **🔖 Bookmarks**: Save and quickly access your favorite directories
-- **🎯 Context-Aware**: Finds ancestor directories in your current path
-- **🔍 Fuzzy Matching**: Find directories even with typos
-- **🌍 Cross-Shell**: Works with Fish, Bash, Zsh, and PowerShell
-- **📊 Statistics**: Track your navigation patterns
-- **🧹 Auto-Cleanup**: Removes non-existent directories automatically
+- **Smart Navigation**: Learns your patterns and suggests the most relevant directories
+- **Instant Jumping**: Jump to any directory by partial name matching
+- **Bookmarks**: Save and quickly access your favorite directories
+- **Context-Aware**: Finds ancestor directories in your current path
+- **Fuzzy Matching**: Find directories even with typos
+- **Cross-Shell**: Works with Fish, Bash, Zsh, and PowerShell
+- **Statistics**: Track your navigation patterns
+- **Auto-Cleanup**: Removes non-existent directories automatically
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -49,7 +49,7 @@ xneo init zsh >> ~/.zshrc
 
 Then restart your shell or source the config file.
 
-## 🎯 Usage
+## Usage
 
 ### Basic Navigation
 
@@ -102,7 +102,7 @@ xneo config show
 xneo config edit
 ```
 
-## 🔧 Configuration
+## Configuration
 
 xneo stores its configuration in `~/.config/xneo/config.json`. You can customize:
 
@@ -127,7 +127,7 @@ xneo stores its configuration in `~/.config/xneo/config.json`. You can customize
 - **auto_clean_on_startup**: Automatically remove stale entries on startup
 - **fzf_options**: Custom options for fzf selection menu
 
-## 🧠 How It Works
+## How It Works
 
 xneo uses a **frecency algorithm** that combines:
 
@@ -139,7 +139,7 @@ The ranking formula: `rank = (ln(visits + 1) * 0.7) + (recency_score * 0.3)`
 
 This ensures frequently used and recently accessed directories appear first.
 
-## 🎨 Examples
+## Examples
 
 ### Smart Project Navigation
 ```bash
@@ -175,7 +175,7 @@ x projects   # Jumps to /home/user/projects
 x src        # Jumps to /home/user/projects/myapp/src
 ```
 
-## 📊 Statistics
+## Statistics
 
 Track your navigation patterns with detailed statistics:
 
@@ -189,7 +189,7 @@ Shows:
 - Recently accessed directories  
 - Active bookmarks
 
-## 🔧 Advanced Usage
+## Advanced Usage
 
 ### Multiple Matches
 When multiple directories match, xneo will:
@@ -232,16 +232,16 @@ To add support for a new shell:
 3. Test the integration
 4. Update documentation
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by [autojump](https://github.com/wting/autojump), [z](https://github.com/rupa/z), and [zoxide](https://github.com/ajeetdsouza/zoxide)
 - Uses the frecency algorithm concept from Mozilla Firefox's address bar
-- Built with ❤️ in Rust
+- Built with in Rust
 
 ---
 
-**Happy navigating! 🎯**
+**Happy navigating!**
