@@ -21,7 +21,7 @@ xneo learns from your directory navigation patterns and provides instant, intell
 
 ```bash
 # Install from source (requires Rust)
-git clone https://github.com/your-username/xneo
+git clone https://github.com/Rkorona/xneo.git
 cd xneo
 cargo install --path .
 
@@ -45,11 +45,6 @@ xneo init bash >> ~/.bashrc
 #### Zsh
 ```bash
 xneo init zsh >> ~/.zshrc
-```
-
-#### PowerShell
-```powershell
-xneo init powershell >> $PROFILE
 ```
 
 Then restart your shell or source the config file.
@@ -220,14 +215,10 @@ xneo config edit
 "fzf_options": "--height=60% --reverse --border --color=dark"
 ```
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
-
 ### Development Setup
 
 ```bash
-git clone https://github.com/your-username/xneo
+git clone https://github.com/Rkorona/xneo.git
 cd xneo
 cargo build
 cargo test
