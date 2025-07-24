@@ -3,9 +3,10 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use colored::*;
-use std::env;
+use std::env; // 需要引入 env
 use std::io::{self, Write};
 
+// ... (mod声明和struct Cli不变) ...
 mod config;
 mod db;
 mod shell;
@@ -21,6 +22,7 @@ struct Cli {
     command: Option<Commands>,
 }
 
+
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// [Internal] Adds a directory to the database
@@ -31,11 +33,17 @@ enum Commands {
     /// [Internal] Queries the database for directories
     Query { 
         keywords: Vec<String>,
+        
         /// Show suggestions for similar paths
         #[arg(long)]
         suggest: bool,
+
+        /// [Internal] Find a matching ancestor directory
+        #[arg(long)]
+        ancestor: bool, // <-- 新增 ancestor 标志
     },
 
+    // ... (其他 Commands 枚举成员不变) ...
     /// Generates shell initialization script
     Init { 
         /// Shell type: fish, bash, zsh, powershell
@@ -65,6 +73,7 @@ enum Commands {
     },
 }
 
+// ... (BookmarkAction 和 ConfigAction 不变) ...
 #[derive(Subcommand, Debug)]
 enum BookmarkAction {
     /// Add a bookmark for current or specified directory
@@ -92,6 +101,7 @@ enum ConfigAction {
     Get { key: String },
 }
 
+
 fn main() -> Result<()> {
     if env::var("RUST_BACKTRACE").is_err() {
         env::set_var("RUST_BACKTRACE", "0");
@@ -102,29 +112,25 @@ fn main() -> Result<()> {
     let mut db = Database::new(config.clone())?;
 
     match cli.command {
-        Some(Commands::Init { shell }) => {
-            handle_init(&shell)?;
+        Some(Commands::Init { shell }) => handle_init(&shell)?,
+        Some(Commands::Add { path }) => db.add(&path)?,
+        
+        // 更新 Query 的匹配
+        Some(Commands::Query { keywords, suggest, ancestor }) => {
+            if ancestor {
+                // 如果是 ancestor 查询，调用新的专用函数
+                handle_ancestor_query(&keywords)?;
+            } else {
+                // 否则，走原来的查询逻辑
+                handle_query(&db, &keywords, suggest)?;
+            }
         }
-        Some(Commands::Add { path }) => {
-            db.add(&path)?;
-        }
-        Some(Commands::Query { keywords, suggest }) => {
-            handle_query(&db, &keywords, suggest)?;
-        }
-        Some(Commands::Bookmark { action }) => {
-            handle_bookmark(&mut db, action)?;
-        }
-        Some(Commands::Stats) => {
-            handle_stats(&db)?;
-        }
-        Some(Commands::Clean { yes }) => {
-            handle_clean(&mut db, yes)?;
-        }
-        Some(Commands::Config { action }) => {
-            handle_config(&config, action)?;
-        }
+        
+        Some(Commands::Bookmark { action }) => handle_bookmark(&mut db, action)?,
+        Some(Commands::Stats) => handle_stats(&db)?,
+        Some(Commands::Clean { yes }) => handle_clean(&mut db, yes)?,
+        Some(Commands::Config { action }) => handle_config(&config, action)?,
         None => {
-            // 无参数时返回home目录
             if let Some(home) = dirs::home_dir() {
                 print!("{}", home.display());
             }
@@ -134,8 +140,32 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-// ... handle_init, handle_query, handle_bookmark, handle_stats, format_time_ago, handle_clean ...
-// (这些函数保持不变)
+// 新增：处理父目录查询的函数
+fn handle_ancestor_query(keywords: &[String]) -> Result<()> {
+    // 父目录查询只接受单个词
+    if keywords.len() != 1 {
+        return Ok(());
+    }
+    let name_to_find = &keywords[0];
+
+    let current_dir = env::current_dir()?;
+    for ancestor in current_dir.ancestors() {
+        if let Some(dir_name) = ancestor.file_name().and_then(|s| s.to_str()) {
+            if dir_name == name_to_find {
+                // 找到了！打印路径并成功退出
+                print!("{}", ancestor.display());
+                return Ok(());
+            }
+        }
+    }
+
+    // 如果循环结束还没找到，就什么也不打印，安静地退出
+    // Shell 脚本会根据是否有输出来决定下一步做什么
+    Ok(())
+}
+
+
+// ... (handle_init, handle_query, handle_bookmark 等函数保持不变) ...
 fn handle_init(shell: &str) -> Result<()> {
     match shell {
         "fish" => print!("{}", shell::FISH_INIT_SCRIPT),

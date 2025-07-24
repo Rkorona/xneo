@@ -25,22 +25,15 @@ if not functions -q x
             return
         end
         
-        # Case 4: Context-Aware Ancestor Matching
-        set -l ancestor_match ""
+        # Case 4: Context-Aware Ancestor Matching (now handled by Rust)
+        set -l ancestor_path ""
         if test (count $argv) -eq 1
-            set -l current_dir $PWD
-            while test "$current_dir" != "/" -a "$current_dir" != "."
-                if test (basename "$current_dir") = "$argv[1]"
-                    set ancestor_match "$current_dir"
-                    break
-                end
-                set current_dir (dirname "$current_dir")
-            end
+            set ancestor_path (command xneo query --ancestor "$argv[1]" 2>/dev/null)
         end
 
         # If an ancestor match was found, jump there
-        if test -n "$ancestor_match"
-            cd "$ancestor_match"
+        if test -n "$ancestor_path"
+            cd "$ancestor_path"
         else
             # Case 5: Global Database Query
             set -l results (command xneo query $argv | string split -n '\n')
@@ -73,6 +66,7 @@ if not functions -q x
     end
 end
 
+# ... (rest of fish script is unchanged) ...
 # History recording hook
 if not functions -q __xneo_add_hook
     function __xneo_add_hook --on-variable PWD
@@ -114,21 +108,12 @@ x() {
         return
     fi
 
-    # Case 4: Context-aware ancestor matching
+    # Case 4: Context-aware ancestor matching (now handled by Rust)
     if [[ $# -eq 1 ]]; then
-        local current_dir="$PWD"
-        local ancestor_match=""
-        
-        while [[ "$current_dir" != "/" && "$current_dir" != "." ]]; do
-            if [[ "$(basename "$current_dir")" == "$1" ]]; then
-                ancestor_match="$current_dir"
-                break
-            fi
-            current_dir="$(dirname "$current_dir")"
-        done
-        
-        if [[ -n "$ancestor_match" ]]; then
-            cd "$ancestor_match"
+        local ancestor_path
+        ancestor_path=$(command xneo query --ancestor "$1" 2>/dev/null)
+        if [[ -n "$ancestor_path" ]]; then
+            cd "$ancestor_path"
             return
         fi
     fi
@@ -167,6 +152,7 @@ x() {
     esac
 }
 
+# ... (rest of bash script is unchanged) ...
 # History recording
 __xneo_add_hook() {
     command xneo add "$PWD" &
@@ -219,21 +205,12 @@ x() {
         return
     fi
 
-    # Case 4: Context-aware ancestor matching
+    # Case 4: Context-aware ancestor matching (now handled by Rust)
     if [[ $# -eq 1 ]]; then
-        local current_dir="$PWD"
-        local ancestor_match=""
-        
-        while [[ "$current_dir" != "/" && "$current_dir" != "." ]]; do
-            if [[ "$(basename "$current_dir")" == "$1" ]]; then
-                ancestor_match="$current_dir"
-                break
-            fi
-            current_dir="$(dirname "$current_dir")"
-        done
-        
-        if [[ -n "$ancestor_match" ]]; then
-            cd "$ancestor_match"
+        local ancestor_path
+        ancestor_path=$(command xneo query --ancestor "$1" 2>/dev/null)
+        if [[ -n "$ancestor_path" ]]; then
+            cd "$ancestor_path"
             return
         fi
     fi
@@ -272,6 +249,7 @@ x() {
     esac
 }
 
+# ... (rest of zsh script is unchanged) ...
 # History recording hook
 __xneo_add_hook() {
     command xneo add "$PWD" &
@@ -291,7 +269,7 @@ _x_completion() {
     local suggestions
     
     _arguments \
-        '*:directory:->directories'
+        '*:directory->directories'
     
     case $state in
         directories)

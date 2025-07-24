@@ -1,110 +1,183 @@
+ ---
 # xneo
 
 A smarter `cd` command with memory and intelligence.
 
-xneo learns from your directory navigation patterns and provides instant, intelligent directory jumping with a frecency algorithm (frequency + recency).
+`xneo` learns from your directory navigation patterns and provides instant, intelligent directory jumping using a **frecency** algorithm (frequency + recency). It acts as a powerful replacement for the standard `cd` command, allowing you to navigate your filesystem with minimal keystrokes.
 
 ## Features
 
-- **Smart Navigation**: Learns your patterns and suggests the most relevant directories
-- **Instant Jumping**: Jump to any directory by partial name matching
-- **Bookmarks**: Save and quickly access your favorite directories
-- **Context-Aware**: Finds ancestor directories in your current path
-- **Fuzzy Matching**: Find directories even with typos
-- **Cross-Shell**: Works with Fish, Bash, and Zsh
-- **Statistics**: Track your navigation patterns
-- **Auto-Cleanup**: Removes non-existent directories automatically
+-   **🧠 Smart Navigation**: Learns your habits and jumps to the most relevant directories based on frequency and recency.
+-   **⚡ Instant Jumping**: Navigate to any deep-nested directory by matching parts of its name.
+-   **🔖 Bookmarks**: Create short, memorable aliases for your most-used directories.
+-   **🌳 Context-Aware**: Intelligently finds ancestor directories in your current path (e.g., jump from `~/project/src/api` to `~/project` with `x project`).
+-   **✍️ Fuzzy Matching**: Finds directories even if you have typos in your query.
+-   **🐚 Cross-Shell Support**: Works seamlessly with `fish`, `bash`, and `zsh`.
+-   **📊 Usage Statistics**: Get insights into your navigation patterns.
+-   **🧹 Auto-Cleanup**: Automatically finds and purges stale, non-existent directory entries from its database.
+-   **⚙️ Customizable**: Fine-tune its behavior, from ignored directories to `fzf` integration options, via a simple JSON config.
 
 ## Quick Start
 
-### Installation
+### 1. Installation
+
+You'll need Rust and Cargo installed.
 
 ```bash
-# Install from source (requires Rust)
+# Clone the repository
 git clone https://github.com/Rkorona/xneo.git
 cd xneo
-cargo install --path .
 
-# Or download pre-built binary from releases
+# Install the binary
+cargo install --path .
 ```
 
-### Shell Integration
+### 2. Shell Integration
 
-Choose your shell and add the integration:
+`xneo` works by hooking into your shell. Add the following line to your shell's configuration file:
 
 #### Fish
-```bash
-xneo init fish >> ~/.config/fish/config.fish
+
+```fish
+# Add to ~/.config/fish/config.fish
+xneo init fish | source
 ```
 
 #### Bash
+
 ```bash
-xneo init bash >> ~/.bashrc
+# Add to ~/.bashrc
+eval "$(xneo init bash)"
 ```
 
 #### Zsh
-```bash
-xneo init zsh >> ~/.zshrc
+
+```zsh
+# Add to ~/.zshrc
+eval "$(xneo init zsh)"
 ```
 
-Then restart your shell or source the config file.
+After adding the line, restart your shell or source the config file (e.g., `source ~/.bashrc`). This will define the `x` function and the `xb` alias for bookmarks.
 
 ## Usage
 
 ### Basic Navigation
 
+The `x` command replaces `cd`. It automatically records every directory you visit.
+
 ```bash
-# Jump to any directory containing "project"
-x project
+# Jump to a directory by name
+x my-project
 
-# Jump to nested directories instantly
-x docs/api
+# Jump to a nested directory instantly
+x api/v2
 
-# Navigate to parent directories by name
-x src        # Jumps to nearest 'src' ancestor directory
-
-# No arguments? Go home
+# Go to your home directory
 x
+
+# It still works with direct paths
+x /etc/nginx
+x ../../
+```
+
+### Context-Aware Navigation
+
+This is one of `xneo`'s most powerful features. It can find parent directories by name from your current location.
+
+```bash
+# You are in /home/user/work/project-alpha/src/components
+
+# Jump up to the 'project-alpha' directory
+x project-alpha
+# -> Navigates to /home/user/work/project-alpha
+
+# Jump up to 'work'
+x work
+# -> Navigates to /home/user/work
 ```
 
 ### Bookmarks
 
+Use the `xb` alias to manage bookmarks for frequently accessed paths.
+
 ```bash
-# Bookmark current directory
-xb add work
+# Bookmark the current directory as 'dotfiles'
+xb add dotfiles
 
-# Bookmark specific directory
-xb add dotfiles ~/.config
+# Bookmark a specific path
+xb add server /var/www/my-app
 
-# Jump to bookmark
-x work
+# Jump to a bookmark
+x dotfiles
+# -> Navigates to the bookmarked path
 
-# List all bookmarks
+# List all your bookmarks
 xb list
 
-# Remove bookmark
-xb remove work
+# Remove a bookmark
+xb remove server
+```
+
+### Interactive Selection with FZF
+
+If your query matches multiple directories, `xneo` will automatically open an `fzf` menu for you to choose from.
+
+```bash
+# You have ~/dev/project-a and ~/work/project-b
+x project
+
+# fzf will open with:
+# > ~/dev/project-a
+#   ~/work/project-b
 ```
 
 ### Statistics & Maintenance
 
 ```bash
-# View usage statistics
+# View your navigation statistics
 xneo stats
 
-# Clean up stale entries
+# Find and remove non-existent directories from the database
 xneo clean
 
-# View current configuration
+# Run cleanup without the confirmation prompt
+xneo clean --yes
+```
+
+### Configuration
+
+```bash
+# View the current configuration
 xneo config show
 
-# Edit configuration
+# Open the config file in your default editor
 xneo config edit
+
+# Reset the configuration to its default values
+xneo config reset
 ```
+
+## How It Works
+
+`xneo` maintains a small SQLite database of the directories you visit, tracking frequency and recency.
+
+The ranking formula: `rank = (ln(visits + 1) * 0.7) + (recency_score * 0.3)`.
+
+This ensures frequently used and recently accessed directories appear first.
+
+1.  **Recording**: A shell hook automatically calls `xneo add "$PWD"` every time your current directory changes, updating the database.
+2.  **Ranking**: When you use `x`, it queries the database and ranks results using a **frecency** algorithm. The rank is a weighted score of:
+    -   **Frequency**: How many times you've visited a directory.
+    -   **Recency**: How recently you visited it (older entries have their score decay over time).
+3.  **Querying**: The `x` function is smart and tries the following logic in order:
+    1.  Is it a valid, direct path (e.g., `../`, `/tmp`)?
+    2.  Is it a bookmark?
+    3.  Is it an ancestor of the current directory?
+    4.  If none of the above, perform a global search in the database using the frecency rank.
 
 ## Configuration
 
-xneo stores its configuration in `~/.config/xneo/config.json`. You can customize:
+You can customize `xneo` by editing `~/.config/xneo/config.json`.
 
 ```json
 {
@@ -127,130 +200,16 @@ xneo stores its configuration in `~/.config/xneo/config.json`. You can customize
 }
 ```
 
-### Configuration Options
-
-- **max_entries**: Maximum number of directories to remember.
-- **ignored_patterns**: Directory patterns to ignore. **Supports glob patterns** (e.g., `**/target/**`, `*.log`).
-- **update_threshold_hours**: Hours after which entries are considered for cleanup.
-- **enable_fuzzy_matching**: Enable fuzzy matching for queries.
-- **auto_clean_on_startup**: Automatically remove stale entries on startup.
-- **fzf_options**: Custom options for the `fzf` selection menu.
-
-## How It Works
-
-xneo uses a **frecency algorithm** that combines:
-
-- **Frequency**: How often you visit a directory
-- **Recency**: How recently you visited it
-- **Context**: Your current location and path structure
-
-The ranking formula: `rank = (ln(visits + 1) * 0.7) + (recency_score * 0.3)`
-
-This ensures frequently used and recently accessed directories appear first.
-
-## Examples
-
-### Smart Project Navigation
-```bash
-# Working on multiple projects
-cd ~/code/awesome-project
-cd ~/code/another-project/src
-cd ~/documents/project-notes
-
-# Later, from anywhere:
-x awesome    # → ~/code/awesome-project
-x src        # → ~/code/another-project/src  
-x notes      # → ~/documents/project-notes
-```
-
-### Bookmark Workflows
-```bash
-# Set up project bookmarks
-xb add backend ~/code/myapp/backend
-xb add frontend ~/code/myapp/frontend  
-xb add deploy ~/code/myapp/deploy
-
-# Quick switching
-x backend    # Jump to backend code
-x frontend   # Jump to frontend code
-x deploy     # Jump to deployment scripts
-```
-
-### Context-Aware Navigation
-```bash
-# In /home/user/projects/myapp/src/components
-x myapp      # Jumps to /home/user/projects/myapp
-x projects   # Jumps to /home/user/projects
-x src        # Jumps to /home/user/projects/myapp/src
-```
-
-## Statistics
-
-Track your navigation patterns with detailed statistics:
-
-```bash
-xneo stats
-```
-
-Shows:
-- Total directories and visits
-- Most frequently visited directories
-- Recently accessed directories  
-- Active bookmarks
-
-## Advanced Usage
-
-### Multiple Matches
-When multiple directories match, xneo will:
-1. Show interactive selection with `fzf` (if available)
-2. Fallback to the highest-ranked match
-3. Display suggestions for partial matches
-
-### Cleaning Database
-```bash
-# Interactive cleanup
-xneo clean
-
-# Auto-cleanup without prompts
-xneo clean --yes
-```
-
-### Custom FZF Options
-```bash
-# Edit config to customize fzf appearance
-xneo config edit
-
-# Example: Change fzf to use different theme
-# "fzf_options": "--height=60% --reverse --border --color=dark"
-```
-
-### Development Setup
-
-```bash
-git clone https://github.com/Rkorona/xneo.git
-cd xneo
-cargo build
-cargo test
-```
-
-### Adding Shell Support
-
-To add support for a new shell:
-1. Add init script to `src/shell.rs`
-2. Update `handle_init()` in `src/main.rs`
-3. Test the integration
-4. Update documentation
+-   `max_entries`: Max number of directory records to keep in the database.
+-   `ignored_patterns`: A list of **glob patterns**. Directories matching these patterns will never be added to the database.
+-   `enable_fuzzy_matching`: Use fuzzy search for queries that don't have an exact match.
+-   `auto_clean_on_startup`: If `true`, runs `xneo clean` automatically.
+-   `fzf_options`: Pass custom command-line options to `fzf` to change its appearance or behavior.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## Acknowledgments
 
-- Inspired by [autojump](https://github.com/wting/autojump), [z](https://github.com/rupa/z), and [zoxide](https://github.com/ajeetdsouza/zoxide)
-- Uses the frecency algorithm concept from Mozilla Firefox's address bar
-- Built with ❤️ in Rust
-
----
-
-**Happy navigating!**
+Inspired by amazing tools like [zoxide](https://github.com/ajeetdsouza/zoxide), [autojump](https://github.com/wting/autojump), and [z](https://github.com/rupa/z).
