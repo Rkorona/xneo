@@ -1,4 +1,4 @@
-// src/shell.rs
+
 
 pub const FISH_INIT_SCRIPT: &str = r#"
 # Prevents this from being defined more than once
@@ -53,7 +53,7 @@ if not functions -q x
             else if test $count -eq 1
                 cd "$results[1]"
             else
-                # 更新：动态获取 fzf 配置
+                # Update: dynamically get fzf configuration
                 set -l fzf_opts (command xneo config get fzf_options)
                 set -l choice (printf "%s\n" $results | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
                 if test -n "$choice"
@@ -66,7 +66,6 @@ if not functions -q x
     end
 end
 
-# ... (rest of fish script is unchanged) ...
 # History recording hook
 if not functions -q __xneo_add_hook
     function __xneo_add_hook --on-variable PWD
@@ -138,7 +137,7 @@ x() {
             cd "${results[0]}"
             ;;
         *)
-            # 更新：动态获取 fzf 配置
+            # Update: dynamically get fzf configuration
             local fzf_opts
             fzf_opts=$(command xneo config get fzf_options)
             local choice
@@ -152,7 +151,6 @@ x() {
     esac
 }
 
-# ... (rest of bash script is unchanged) ...
 # History recording
 __xneo_add_hook() {
     command xneo add "$PWD" &
@@ -235,7 +233,7 @@ x() {
             cd "${results[1]}"
             ;;
         *)
-            # 更新：动态获取 fzf 配置
+            # Update: dynamically get fzf configuration
             local fzf_opts
             fzf_opts=$(command xneo config get fzf_options)
             local choice
@@ -249,7 +247,6 @@ x() {
     esac
 }
 
-# ... (rest of zsh script is unchanged) ...
 # History recording hook
 __xneo_add_hook() {
     command xneo add "$PWD" &

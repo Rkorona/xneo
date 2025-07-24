@@ -1,4 +1,4 @@
-// src/db.rs
+
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
@@ -51,7 +51,7 @@ impl Database {
         let conn = Connection::open(&db_path)
             .with_context(|| format!("Failed to open or create database at {:?}", db_path))?;
         
-        // 创建目录表
+        // Create dirs table
         conn.execute(
             "CREATE TABLE IF NOT EXISTS dirs (
                 path        TEXT PRIMARY KEY,
@@ -61,7 +61,7 @@ impl Database {
             [],
         )?;
         
-        // 创建书签表
+        // Create bookmarks table
         conn.execute(
             "CREATE TABLE IF NOT EXISTS bookmarks (
                 name        TEXT PRIMARY KEY,
@@ -70,7 +70,7 @@ impl Database {
             [],
         )?;
         
-        // 创建索引提升查询性能
+        // Create indices to improve query performance
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_dirs_visits ON dirs(visits_total DESC)",
             [],
@@ -83,7 +83,7 @@ impl Database {
         
         let mut db = Database { conn, config };
         
-        // 自动清理过期条目
+        // Auto-clean stale entries on startup
         if db.config.auto_clean_on_startup {
             let _ = db.auto_clean();
         }
@@ -92,7 +92,7 @@ impl Database {
     }
     
     pub fn add(&mut self, path: &str) -> Result<()> {
-        // 检查是否应该忽略此路径
+        // Check if this path should be ignored
         if self.config.is_ignored(path) {
             return Ok(());
         }
@@ -106,7 +106,7 @@ impl Database {
             params![path, now],
         )?;
         
-        // 如果条目数量超过限制，删除最旧的条目
+        // If the number of entries exceeds the limit, delete the oldest entries
         self.maintain_size_limit()?;
         
         Ok(())
@@ -117,7 +117,7 @@ impl Database {
             return Ok(Vec::new());
         }
         
-        // 获取所有条目
+        // Get all entries
         let mut stmt = self.conn.prepare(
             "SELECT path, last_access, visits_total FROM dirs ORDER BY visits_total DESC"
         )?;
@@ -137,7 +137,7 @@ impl Database {
         let keyword = keywords.join(" ");
         let mut matches = Vec::new();
         
-        // 1. 精确匹配
+        // 1. Exact match
         for entry in &all_entries {
             if entry.path == keyword || entry.path.ends_with(&format!("/{}", keyword)) {
                 matches.push(entry.clone());
@@ -149,7 +149,7 @@ impl Database {
             return Ok(matches);
         }
         
-        // 2. 目录名精确匹配
+        // 2. Exact directory name match
         let mut dir_matches = HashSet::new();
         for entry in &all_entries {
             for ancestor in Path::new(&entry.path).ancestors() {
@@ -174,7 +174,7 @@ impl Database {
             return Ok(matches);
         }
         
-        // 3. 模糊匹配（如果启用）
+        // 3. Fuzzy match (if enabled)
         if self.config.enable_fuzzy_matching {
             let matcher = SkimMatcherV2::default();
             let mut fuzzy_matches = Vec::new();
@@ -190,7 +190,7 @@ impl Database {
             matches = fuzzy_matches.into_iter().map(|(entry, _)| entry).collect();
         }
         
-        // 4. 子字符串匹配（作为最后的回退）
+        // 4. Substring match (as a fallback)
         if matches.is_empty() {
             for entry in &all_entries {
                 if entry.path.to_lowercase().contains(&keyword.to_lowercase()) {
@@ -200,13 +200,13 @@ impl Database {
             matches.sort_by(|a, b| b.rank.partial_cmp(&a.rank).unwrap());
         }
         
-        Ok(matches.into_iter().take(20).collect()) // 限制结果数量
+        Ok(matches.into_iter().take(20).collect()) // Limit the number of results
     }
     
     fn calculate_rank(&self, visits: u32, last_access: &DateTime<Utc>, now: &DateTime<Utc>) -> f64 {
         let age_in_hours = (now.timestamp() - last_access.timestamp()) as f64 / 3600.0;
-        let frequency_score = (visits as f64).ln() + 1.0; // 对数缩放访问次数
-        let recency_score = 1.0 / (age_in_hours + 1.0); // 时间衰减
+        let frequency_score = (visits as f64).ln() + 1.0; // Log-scale visit count
+        let recency_score = 1.0 / (age_in_hours + 1.0); // Time decay
         
         frequency_score * 0.7 + recency_score * 0.3
     }
@@ -275,7 +275,7 @@ impl Database {
         self.purge(&stale_paths)
     }
     
-    // 书签功能
+    // Bookmark functions
     pub fn add_bookmark(&mut self, name: &str, path: &str) -> Result<()> {
         self.conn.execute(
             "INSERT OR REPLACE INTO bookmarks (name, path) VALUES (?1, ?2)",
@@ -321,7 +321,7 @@ impl Database {
         }
     }
     
-    // 统计功能
+    // Statistics functions
     pub fn get_stats(&self) -> Result<Stats> {
         let total_entries: u32 = self.conn.query_row(
             "SELECT COUNT(*) FROM dirs",
@@ -335,7 +335,7 @@ impl Database {
             |row| row.get(0)
         )?;
         
-        // 最常访问的目录
+        // Most visited directories
         let mut stmt = self.conn.prepare(
             "SELECT path, last_access, visits_total FROM dirs 
              ORDER BY visits_total DESC LIMIT 10"
@@ -353,7 +353,7 @@ impl Database {
             .filter_map(Result::ok)
             .collect();
         
-        // 最近访问的目录
+        // Recently visited directories
         let mut stmt = self.conn.prepare(
             "SELECT path, last_access, visits_total FROM dirs 
              ORDER BY last_access DESC LIMIT 10"

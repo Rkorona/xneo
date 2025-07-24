@@ -1,12 +1,11 @@
-// src/main.rs
+
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use colored::*;
-use std::env; // 需要引入 env
+use std::env;
 use std::io::{self, Write};
 
-// ... (mod声明和struct Cli不变) ...
 mod config;
 mod db;
 mod shell;
@@ -40,10 +39,9 @@ enum Commands {
 
         /// [Internal] Find a matching ancestor directory
         #[arg(long)]
-        ancestor: bool, // <-- 新增 ancestor 标志
+        ancestor: bool,
     },
 
-    // ... (其他 Commands 枚举成员不变) ...
     /// Generates shell initialization script
     Init { 
         /// Shell type: fish, bash, zsh, powershell
@@ -73,7 +71,6 @@ enum Commands {
     },
 }
 
-// ... (BookmarkAction 和 ConfigAction 不变) ...
 #[derive(Subcommand, Debug)]
 enum BookmarkAction {
     /// Add a bookmark for current or specified directory
@@ -115,13 +112,13 @@ fn main() -> Result<()> {
         Some(Commands::Init { shell }) => handle_init(&shell)?,
         Some(Commands::Add { path }) => db.add(&path)?,
         
-        // 更新 Query 的匹配
+        // Update Query matching
         Some(Commands::Query { keywords, suggest, ancestor }) => {
             if ancestor {
-                // 如果是 ancestor 查询，调用新的专用函数
+                // If it's an ancestor query, call the new dedicated function
                 handle_ancestor_query(&keywords)?;
             } else {
-                // 否则，走原来的查询逻辑
+                // Otherwise, use the original query logic
                 handle_query(&db, &keywords, suggest)?;
             }
         }
@@ -140,9 +137,9 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-// 新增：处理父目录查询的函数
+// New: function to handle parent directory queries
 fn handle_ancestor_query(keywords: &[String]) -> Result<()> {
-    // 父目录查询只接受单个词
+    // Parent directory query only accepts a single word
     if keywords.len() != 1 {
         return Ok(());
     }
@@ -152,20 +149,19 @@ fn handle_ancestor_query(keywords: &[String]) -> Result<()> {
     for ancestor in current_dir.ancestors() {
         if let Some(dir_name) = ancestor.file_name().and_then(|s| s.to_str()) {
             if dir_name == name_to_find {
-                // 找到了！打印路径并成功退出
+                // Found! Print the path and exit successfully
                 print!("{}", ancestor.display());
                 return Ok(());
             }
         }
     }
 
-    // 如果循环结束还没找到，就什么也不打印，安静地退出
-    // Shell 脚本会根据是否有输出来决定下一步做什么
+    // If the loop finishes without finding anything, print nothing and exit quietly
+    // The shell script will decide what to do next based on whether there is output
     Ok(())
 }
 
 
-// ... (handle_init, handle_query, handle_bookmark 等函数保持不变) ...
 fn handle_init(shell: &str) -> Result<()> {
     match shell {
         "fish" => print!("{}", shell::FISH_INIT_SCRIPT),
@@ -185,7 +181,7 @@ fn handle_query(db: &Database, keywords: &[String], suggest: bool) -> Result<()>
         return Ok(());
     }
 
-    // 优先检查书签
+    // Prioritize checking bookmarks
     let keyword = keywords.join(" ");
     if keywords.len() == 1 {
         if let Some(path) = db.get_bookmark(&keyword)? {
@@ -197,14 +193,14 @@ fn handle_query(db: &Database, keywords: &[String], suggest: bool) -> Result<()>
     let results = db.query(keywords)?;
     
     if suggest {
-        // 为建议模式，只返回路径列表
+        // For suggestion mode, only return a list of paths
         for entry in results.iter().take(10) {
             println!("{}", entry.path);
         }
     } else {
-        // 正常查询模式
+        // Normal query mode
         if results.is_empty() {
-            // 尝试提供建议
+            // Try to provide suggestions
             if let Ok(suggestions) = db.query(&[keyword.chars().take(3).collect()]) {
                 if !suggestions.is_empty() {
                     eprintln!("{}: No exact match found", "Info".yellow().bold());
@@ -428,7 +424,7 @@ fn handle_config(config: &Config, action: Option<ConfigAction>) -> Result<()> {
             new_config.save()?;
             println!("{}: Configuration reset to defaults", "✓".green().bold());
         }
-        // 新增：处理 get 命令
+        // New: handle get command
         Some(ConfigAction::Get { key }) => {
             match key.as_str() {
                 "fzf_options" => print!("{}", config.fzf_options),
