@@ -1,5 +1,3 @@
-
-```markdown
 # xneo
 
 A smarter `cd` command with memory and intelligence.
@@ -256,4 +254,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ---
 
 **Happy navigating!**
-```
