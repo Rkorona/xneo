@@ -1,10 +1,10 @@
 [package]
 name = "xneo"
 version = "0.2.0"
-edition = "2021"
+edition = "2025"
 description = "A smarter cd command with memory and intelligence"
 license = "MIT"
-repository = "https://github.com/your-username/xneo"
+repository = "https://github.com/Rkorona/xneo"
 keywords = ["cli", "directory", "navigation", "cd", "terminal"]
 categories = ["command-line-utilities"]
 
