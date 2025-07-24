@@ -1,3 +1,5 @@
+
+```markdown
 # xneo
 
 A smarter `cd` command with memory and intelligence.
@@ -11,7 +13,7 @@ xneo learns from your directory navigation patterns and provides instant, intell
 - **Bookmarks**: Save and quickly access your favorite directories
 - **Context-Aware**: Finds ancestor directories in your current path
 - **Fuzzy Matching**: Find directories even with typos
-- **Cross-Shell**: Works with Fish, Bash, Zsh, and PowerShell
+- **Cross-Shell**: Works with Fish, Bash, and Zsh
 - **Statistics**: Track your navigation patterns
 - **Auto-Cleanup**: Removes non-existent directories automatically
 
@@ -109,7 +111,16 @@ xneo stores its configuration in `~/.config/xneo/config.json`. You can customize
 ```json
 {
   "max_entries": 1000,
-  "ignored_patterns": ["node_modules", ".git", "target"],
+  "ignored_patterns": [
+    "**/node_modules",
+    "**/node_modules/**",
+    "**/.git",
+    "**/.git/**",
+    "**/target",
+    "**/target/**",
+    "**/*.log",
+    "**/*.tmp"
+  ],
   "update_threshold_hours": 168,
   "enable_fuzzy_matching": true,
   "show_stats_on_query": false,
@@ -120,12 +131,12 @@ xneo stores its configuration in `~/.config/xneo/config.json`. You can customize
 
 ### Configuration Options
 
-- **max_entries**: Maximum number of directories to remember
-- **ignored_patterns**: Directory patterns to ignore
-- **update_threshold_hours**: Hours after which entries are considered for cleanup
-- **enable_fuzzy_matching**: Enable fuzzy matching for queries
-- **auto_clean_on_startup**: Automatically remove stale entries on startup
-- **fzf_options**: Custom options for fzf selection menu
+- **max_entries**: Maximum number of directories to remember.
+- **ignored_patterns**: Directory patterns to ignore. **Supports glob patterns** (e.g., `**/target/**`, `*.log`).
+- **update_threshold_hours**: Hours after which entries are considered for cleanup.
+- **enable_fuzzy_matching**: Enable fuzzy matching for queries.
+- **auto_clean_on_startup**: Automatically remove stale entries on startup.
+- **fzf_options**: Custom options for the `fzf` selection menu.
 
 ## How It Works
 
@@ -212,7 +223,7 @@ xneo clean --yes
 xneo config edit
 
 # Example: Change fzf to use different theme
-"fzf_options": "--height=60% --reverse --border --color=dark"
+# "fzf_options": "--height=60% --reverse --border --color=dark"
 ```
 
 ### Development Setup
@@ -240,8 +251,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 - Inspired by [autojump](https://github.com/wting/autojump), [z](https://github.com/rupa/z), and [zoxide](https://github.com/ajeetdsouza/zoxide)
 - Uses the frecency algorithm concept from Mozilla Firefox's address bar
-- Built with in Rust
+- Built with ❤️ in Rust
 
 ---
 
 **Happy navigating!**
+```

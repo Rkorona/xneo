@@ -88,6 +88,8 @@ enum ConfigAction {
     Edit,
     /// Reset to default configuration
     Reset,
+    /// [Internal] Get a specific config value
+    Get { key: String },
 }
 
 fn main() -> Result<()> {
@@ -132,13 +134,15 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+// ... handle_init, handle_query, handle_bookmark, handle_stats, format_time_ago, handle_clean ...
+// (这些函数保持不变)
 fn handle_init(shell: &str) -> Result<()> {
     match shell {
         "fish" => print!("{}", shell::FISH_INIT_SCRIPT),
         "bash" => print!("{}", shell::BASH_INIT_SCRIPT),
         "zsh" => print!("{}", shell::ZSH_INIT_SCRIPT),
         _ => {
-            eprintln!("{}: Unsupported shell: {}", "Error".red().bold(), shell);
+            eprintln!("{}: Unsupported shell: {}","Error".red().bold(), shell);
             eprintln!("Supported shells: fish, bash, zsh, powershell");
             std::process::exit(1);
         }
@@ -205,23 +209,13 @@ fn handle_bookmark(db: &mut Database, action: BookmarkAction) -> Result<()> {
             }
             
             db.add_bookmark(&name, &target_path)?;
-            println!("{}: Bookmark '{}' created for {}", 
-                "Success".green().bold(), 
-                name.bright_yellow(), 
-                target_path.bright_blue()
-            );
+            println!("{}: Bookmark '{}' created for {}", "Success".green().bold(), name.bright_yellow(), target_path.bright_blue());
         }
         BookmarkAction::Remove { name } => {
             if db.remove_bookmark(&name)? {
-                println!("{}: Bookmark '{}' removed", 
-                    "Success".green().bold(), 
-                    name.bright_yellow()
-                );
+                println!("{}: Bookmark '{}' removed", "Success".green().bold(), name.bright_yellow());
             } else {
-                eprintln!("{}: Bookmark '{}' not found", 
-                    "Error".red().bold(), 
-                    name.bright_yellow()
-                );
+                eprintln!("{}: Bookmark '{}' not found", "Error".red().bold(), name.bright_yellow());
                 std::process::exit(1);
             }
         }
@@ -232,10 +226,7 @@ fn handle_bookmark(db: &mut Database, action: BookmarkAction) -> Result<()> {
             } else {
                 println!("{}", "Bookmarks:".bright_green().bold());
                 for bookmark in bookmarks {
-                    println!("  {} -> {}", 
-                        bookmark.name.bright_yellow(), 
-                        bookmark.path.bright_blue()
-                    );
+                    println!("  {} -> {}", bookmark.name.bright_yellow(), bookmark.path.bright_blue());
                 }
             }
         }
@@ -259,11 +250,7 @@ fn handle_stats(db: &Database) -> Result<()> {
     if !stats.most_visited.is_empty() {
         println!("\n{}", "🔥 Most Visited:".bright_yellow().bold());
         for (i, entry) in stats.most_visited.iter().enumerate() {
-            println!("  {}. {} ({} visits)", 
-                (i + 1).to_string().bright_white(),
-                entry.path.bright_blue(), 
-                entry.visits.to_string().bright_green()
-            );
+            println!("  {}. {} ({} visits)", (i + 1).to_string().bright_white(), entry.path.bright_blue(), entry.visits.to_string().bright_green());
         }
     }
     
@@ -271,23 +258,15 @@ fn handle_stats(db: &Database) -> Result<()> {
         println!("\n{}", "⏰ Recently Visited:".bright_yellow().bold());
         for (i, entry) in stats.recently_visited.iter().enumerate() {
             let time_ago = format_time_ago(&entry.last_access);
-            println!("  {}. {} ({})",
-                (i + 1).to_string().bright_white(),
-                entry.path.bright_blue(),
-                time_ago.bright_green()
-            );
+            println!("  {}. {} ({})", (i + 1).to_string().bright_white(), entry.path.bright_blue(), time_ago.bright_green());
         }
     }
     
-    // 显示书签统计
     let bookmarks = db.get_bookmarks()?;
     if !bookmarks.is_empty() {
         println!("\n{}", "🔖 Bookmarks:".bright_yellow().bold());
         for bookmark in bookmarks.iter().take(5) {
-            println!("  {} -> {}", 
-                bookmark.name.bright_yellow(), 
-                bookmark.path.bright_blue()
-            );
+            println!("  {} -> {}", bookmark.name.bright_yellow(), bookmark.path.bright_blue());
         }
         if bookmarks.len() > 5 {
             println!("  ... and {} more", (bookmarks.len() - 5).to_string().bright_cyan());
@@ -318,27 +297,18 @@ fn handle_clean(db: &mut Database, yes: bool) -> Result<()> {
     println!("{}", "🔍 Scanning for stale entries...".bright_blue());
     
     let pb = ProgressBar::new_spinner();
-    pb.set_style(
-        ProgressStyle::default_spinner()
-            .template("{spinner:.green} {msg}")
-            .unwrap()
-    );
+    pb.set_style(ProgressStyle::default_spinner().template("{spinner:.green} {msg}").unwrap());
     pb.set_message("Checking directories...");
     
     let stale_entries = db.find_stale()?;
     pb.finish_and_clear();
     
     if stale_entries.is_empty() {
-        println!("{}: Database is clean. No stale entries found.", 
-            "✓".green().bold()
-        );
+        println!("{}: Database is clean. No stale entries found.", "✓".green().bold());
         return Ok(());
     }
 
-    println!("{}: Found {} stale entries:", 
-        "⚠".yellow().bold(), 
-        stale_entries.len().to_string().bright_red()
-    );
+    println!("{}: Found {} stale entries:", "⚠".yellow().bold(), stale_entries.len().to_string().bright_red());
     
     for (i, entry) in stale_entries.iter().enumerate() {
         if i < 10 {
@@ -360,26 +330,20 @@ fn handle_clean(db: &mut Database, yes: bool) -> Result<()> {
     
     if confirmed {
         let pb = ProgressBar::new(stale_entries.len() as u64);
-        pb.set_style(
-            ProgressStyle::default_bar()
-                .template("{bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
-                .unwrap()
-        );
+        pb.set_style(ProgressStyle::default_bar().template("{bar:40.cyan/blue} {pos:>7}/{len:7} {msg}").unwrap());
         pb.set_message("Cleaning...");
         
         let cleaned_count = db.purge(&stale_entries)?;
         pb.finish_with_message("Done!");
         
-        println!("\n{}: Successfully removed {} stale entries.", 
-            "✓".green().bold(), 
-            cleaned_count.to_string().bright_green()
-        );
+        println!("\n{}: Successfully removed {} stale entries.", "✓".green().bold(), cleaned_count.to_string().bright_green());
     } else {
         println!("\n{}: No changes were made.", "ℹ".blue().bold());
     }
     
     Ok(())
 }
+
 
 fn handle_config(config: &Config, action: Option<ConfigAction>) -> Result<()> {
     match action {
@@ -411,7 +375,6 @@ fn handle_config(config: &Config, action: Option<ConfigAction>) -> Result<()> {
             
             println!("Opening config file: {}", config_path.display().to_string().bright_blue());
             
-            // Try to open with various editors
             let editors = ["code", "vim", "nano", "emacs", "notepad"];
             let mut opened = false;
             
@@ -434,6 +397,16 @@ fn handle_config(config: &Config, action: Option<ConfigAction>) -> Result<()> {
             let new_config = Config::default();
             new_config.save()?;
             println!("{}: Configuration reset to defaults", "✓".green().bold());
+        }
+        // 新增：处理 get 命令
+        Some(ConfigAction::Get { key }) => {
+            match key.as_str() {
+                "fzf_options" => print!("{}", config.fzf_options),
+                _ => {
+                    eprintln!("{}: Unknown config key: {}", "Error".red().bold(), key);
+                    std::process::exit(1);
+                }
+            }
         }
     }
     Ok(())

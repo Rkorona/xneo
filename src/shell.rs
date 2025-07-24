@@ -60,7 +60,9 @@ if not functions -q x
             else if test $count -eq 1
                 cd "$results[1]"
             else
-                set -l choice (printf "%s\n" $results | fzf --height=40% --reverse --border --prompt="Select directory: ")
+                # 更新：动态获取 fzf 配置
+                set -l fzf_opts (command xneo config get fzf_options)
+                set -l choice (printf "%s\n" $results | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
                 if test -n "$choice"
                     cd "$choice"
                 else
@@ -151,8 +153,11 @@ x() {
             cd "${results[0]}"
             ;;
         *)
+            # 更新：动态获取 fzf 配置
+            local fzf_opts
+            fzf_opts=$(command xneo config get fzf_options)
             local choice
-            choice=$(printf "%s\n" "${results[@]}" | fzf --height=40% --reverse --border --prompt="Select directory: ")
+            choice=$(printf "%s\n" "${results[@]}" | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
             if [[ -n "$choice" ]]; then
                 cd "$choice"
             else
@@ -253,8 +258,11 @@ x() {
             cd "${results[1]}"
             ;;
         *)
+            # 更新：动态获取 fzf 配置
+            local fzf_opts
+            fzf_opts=$(command xneo config get fzf_options)
             local choice
-            choice=$(printf "%s\n" "${results[@]}" | fzf --height=40% --reverse --border --prompt="Select directory: ")
+            choice=$(printf "%s\n" "${results[@]}" | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
             if [[ -n "$choice" ]]; then
                 cd "$choice"
             else
