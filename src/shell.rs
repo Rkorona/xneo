@@ -249,7 +249,8 @@ x() {
 
 # History recording hook
 __xneo_add_hook() {
-    (command xneo add "$PWD" >/dev/null 2>&1 &) >/dev/null 2>&1
+   # (command xneo add "$PWD" >/dev/null 2>&1 &) >/dev/null 2>&1
+    command xneo add "$PWD" &>/dev/null &
 }
 
 # Add to precmd_functions
@@ -271,7 +272,7 @@ _x_completion() {
     case $state in
         directories)
             # 本地目录
-            localdirs=(${(f)"$(ls -d -- */ 2>/dev/null)"})
+            localdirs=(*(N/))
             # xneo 数据库建议
             suggestions=(${(f)"$(command xneo query --suggest "${words[CURRENT]}" 2>/dev/null)"})
             # 合并去重
