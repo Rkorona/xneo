@@ -260,26 +260,4 @@ xb() {
     command xneo bookmark "$@"
 }
 
-# Completion for x command
-_x_completion() {
-    local context state line
-    local suggestions localdirs
-
-    _arguments \
-        '*:directory->directories'
-
-    case $state in
-        directories)
-            # 本地目录
-            localdirs=(*(N/))
-            # xneo 数据库建议
-            suggestions=(${(f)"$(command xneo query --suggest "${words[CURRENT]}" 2>/dev/null)"})
-            # 合并去重
-            local all_suggestions=(${(u)localdirs[@]} ${(u)suggestions[@]})
-            _describe 'directories' all_suggestions
-            ;;
-    esac
-}
-
-compdef _x_completion x
 "#;
