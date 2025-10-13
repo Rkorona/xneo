@@ -237,7 +237,7 @@ x() {
             local fzf_opts
             fzf_opts=$(command xneo config get fzf_options)
             local choice
-            choice=$(printf "%s\n" "${results[@]}" | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
+            choice=$(printf "%s\n" "${results[@]}" | fzf ${(z)fzf_opts} --prompt="Select directory: ")
             if [[ -n "$choice" ]]; then
                 cd "$choice"
             else
