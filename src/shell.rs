@@ -249,7 +249,7 @@ x() {
 
 # History recording hook
 __xneo_add_hook() {
-    command xneo add "$PWD" >/dev/null 2>&1 &
+    command xneo add "$PWD" >/dev/null 2>&1 & disown
 }
 
 # Add to precmd_functions
