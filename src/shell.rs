@@ -1,5 +1,3 @@
-
-
 pub const FISH_INIT_SCRIPT: &str = r#"
 # Prevents this from being defined more than once
 if not functions -q x
@@ -261,3 +259,4 @@ xb() {
 }
 
 "#;
+

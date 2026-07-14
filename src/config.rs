@@ -1,5 +1,3 @@
-
-
 use anyhow::{Context, Result};
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use serde::{Deserialize, Serialize};
@@ -27,7 +25,6 @@ fn default_globset() -> GlobSet {
 
 impl Default for Config {
     fn default() -> Self {
-       
         let ignored_patterns = vec![
             // node_modules
             "**/node_modules".to_string(),
@@ -58,10 +55,10 @@ impl Default for Config {
                 builder.add(glob);
             }
         }
-        
-        let compiled_ignores = builder.build().unwrap_or_else(|_| {
-            GlobSetBuilder::new().build().unwrap()
-        });
+
+        let compiled_ignores = builder
+            .build()
+            .unwrap_or_else(|_| GlobSetBuilder::new().build().unwrap());
 
         Self {
             max_entries: 1000,
@@ -79,13 +76,13 @@ impl Default for Config {
 impl Config {
     pub fn load() -> Result<Self> {
         let config_path = Self::config_path()?;
-        
+
         if config_path.exists() {
             let content = fs::read_to_string(&config_path)
                 .with_context(|| format!("Failed to read config file: {:?}", config_path))?;
-            let mut config: Config = serde_json::from_str(&content)
-                .with_context(|| "Failed to parse config file")?;
-            
+            let mut config: Config =
+                serde_json::from_str(&content).with_context(|| "Failed to parse config file")?;
+
             config.compile_ignores()?;
             Ok(config)
         } else {
@@ -94,7 +91,7 @@ impl Config {
             Ok(config)
         }
     }
-    
+
     fn compile_ignores(&mut self) -> Result<()> {
         let mut builder = GlobSetBuilder::new();
         for pattern in &self.ignored_patterns {
@@ -102,34 +99,34 @@ impl Config {
                 .with_context(|| format!("Invalid glob pattern in config: '{}'", pattern))?;
             builder.add(glob);
         }
-        self.compiled_ignores = builder.build()
+        self.compiled_ignores = builder
+            .build()
             .context("Failed to build globset from ignored patterns")?;
         Ok(())
     }
 
     pub fn save(&self) -> Result<()> {
         let config_path = Self::config_path()?;
-        
+
         if let Some(parent) = config_path.parent() {
             fs::create_dir_all(parent)
                 .with_context(|| format!("Failed to create config directory: {:?}", parent))?;
         }
-        
-        let content = serde_json::to_string_pretty(self)
-            .context("Failed to serialize config")?;
+
+        let content = serde_json::to_string_pretty(self).context("Failed to serialize config")?;
         fs::write(&config_path, content)
             .with_context(|| format!("Failed to write config file: {:?}", config_path))?;
-        
+
         Ok(())
     }
-    
+
     fn config_path() -> Result<PathBuf> {
-        let config_dir = dirs::config_dir()
-            .context("Failed to find user's config directory")?;
+        let config_dir = dirs::config_dir().context("Failed to find user's config directory")?;
         Ok(config_dir.join("xneo").join("config.json"))
     }
-    
+
     pub fn is_ignored(&self, path: &str) -> bool {
         self.compiled_ignores.is_match(Path::new(path))
     }
 }
+

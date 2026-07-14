@@ -1,4 +1,5 @@
- ---
+---
+
 # xneo
 
 A smarter `cd` command with memory and intelligence.
@@ -7,15 +8,15 @@ A smarter `cd` command with memory and intelligence.
 
 ## Features
 
--   **Smart Navigation**: Learns your habits and jumps to the most relevant directories based on frequency and recency.
--   **Instant Jumping**: Navigate to any deep-nested directory by matching parts of its name.
--   **Bookmarks**: Create short, memorable aliases for your most-used directories.
--   **Context-Aware**: Intelligently finds ancestor directories in your current path (e.g., jump from `~/project/src/api` to `~/project` with `x project`).
--   **Fuzzy Matching**: Finds directories even if you have typos in your query.
--   **Cross-Shell Support**: Works seamlessly with `fish`, `bash`, and `zsh`.
--   **Usage Statistics**: Get insights into your navigation patterns.
--   **Auto-Cleanup**: Automatically finds and purges stale, non-existent directory entries from its database.
--   **Customizable**: Fine-tune its behavior, from ignored directories to `fzf` integration options, via a simple JSON config.
+- **Smart Navigation**: Learns your habits and jumps to the most relevant directories based on frequency and recency.
+- **Instant Jumping**: Navigate to any deep-nested directory by matching parts of its name.
+- **Bookmarks**: Create short, memorable aliases for your most-used directories.
+- **Context-Aware**: Intelligently finds ancestor directories in your current path (e.g., jump from `~/project/src/api` to `~/project` with `x project`).
+- **Fuzzy Matching**: Finds directories even if you have typos in your query.
+- **Cross-Shell Support**: Works seamlessly with `fish`, `bash`, and `zsh`.
+- **Usage Statistics**: Get insights into your navigation patterns.
+- **Auto-Cleanup**: Automatically finds and purges stale, non-existent directory entries from its database.
+- **Customizable**: Fine-tune its behavior, from ignored directories to `fzf` integration options, via a simple JSON config.
 
 ## Quick Start
 
@@ -167,8 +168,8 @@ This ensures frequently used and recently accessed directories appear first.
 
 1.  **Recording**: A shell hook automatically calls `xneo add "$PWD"` every time your current directory changes, updating the database.
 2.  **Ranking**: When you use `x`, it queries the database and ranks results using a **frecency** algorithm. The rank is a weighted score of:
-    -   **Frequency**: How many times you've visited a directory.
-    -   **Recency**: How recently you visited it (older entries have their score decay over time).
+    - **Frequency**: How many times you've visited a directory.
+    - **Recency**: How recently you visited it (older entries have their score decay over time).
 3.  **Querying**: The `x` function is smart and tries the following logic in order:
     1.  Is it a valid, direct path (e.g., `../`, `/tmp`)?
     2.  Is it a bookmark?
@@ -200,11 +201,11 @@ You can customize `xneo` by editing `~/.config/xneo/config.json`.
 }
 ```
 
--   `max_entries`: Max number of directory records to keep in the database.
--   `ignored_patterns`: A list of **glob patterns**. Directories matching these patterns will never be added to the database.
--   `enable_fuzzy_matching`: Use fuzzy search for queries that don't have an exact match.
--   `auto_clean_on_startup`: If `true`, runs `xneo clean` automatically.
--   `fzf_options`: Pass custom command-line options to `fzf` to change its appearance or behavior.
+- `max_entries`: Max number of directory records to keep in the database.
+- `ignored_patterns`: A list of **glob patterns**. Directories matching these patterns will never be added to the database.
+- `enable_fuzzy_matching`: Use fuzzy search for queries that don't have an exact match.
+- `auto_clean_on_startup`: If `true`, runs `xneo clean` automatically.
+- `fzf_options`: Pass custom command-line options to `fzf` to change its appearance or behavior.
 
 ---
 
@@ -213,4 +214,6 @@ You can customize `xneo` by editing `~/.config/xneo/config.json`.
 Inspired by amazing tools like [zoxide](https://github.com/ajeetdsouza/zoxide), [autojump](https://github.com/wting/autojump), and [z](https://github.com/rupa/z).
 
 ---
-## Happy navigating!
+
+## Happy navigating
+
