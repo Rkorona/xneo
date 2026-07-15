@@ -17,11 +17,11 @@ serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 shellexpand = "3.1"
 home = "0.5"
-rusqlite = { version = "0.31", features = ["bundled", "chrono"] }
+rusqlite = { version = "0.40", features = ["bundled", "chrono"] }
 regex = "1"
 fuzzy-matcher = "0.3"
-colored = "2.2"
-indicatif = "0.17"
+colored = "3.1"
+indicatif = "0.18"
 globset = "0.4"
 
 [profile.release]
