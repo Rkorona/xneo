@@ -53,9 +53,9 @@ if not functions -q x
             else
                 # Update: dynamically get fzf configuration
                 set -l fzf_opts (command xneo config get fzf_options)
-                set -l choice (printf "%s\n" $results | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
+                set -l choice (printf "%s\n" $results | string replace -r "^$HOME" "~" | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
                 if test -n "$choice"
-                    cd "$choice"
+                    cd (string replace -r "^~" $HOME $choice)
                 else
                     return 1
                 end
@@ -139,9 +139,9 @@ x() {
             local fzf_opts
             fzf_opts=$(command xneo config get fzf_options)
             local choice
-            choice=$(printf "%s\n" "${results[@]}" | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
+            choice=$(printf "%s\n" "${results[@]}" | sed "s|^$HOME|~|" | eval "fzf $fzf_opts --prompt=\"Select directory: \"")
             if [[ -n "$choice" ]]; then
-                cd "$choice"
+                cd "${choice/#\~/$HOME}"
             else
                 return 1
             fi
@@ -235,9 +235,9 @@ x() {
             local fzf_opts
             fzf_opts=$(command xneo config get fzf_options)
             local choice
-            choice=$(printf "%s\n" "${results[@]}" | fzf ${(z)fzf_opts} --prompt="Select directory: ")
+            choice=$(printf "%s\n" "${results[@]}" | sed "s|^$HOME|~|" | fzf ${(z)fzf_opts} --prompt="Select directory: ")
             if [[ -n "$choice" ]]; then
-                cd "$choice"
+                cd "${choice/#\~/$HOME}"
             else
                 return 1
             fi
